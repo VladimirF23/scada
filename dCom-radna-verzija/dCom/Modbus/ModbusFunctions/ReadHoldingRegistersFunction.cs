@@ -21,18 +21,66 @@ namespace Modbus.ModbusFunctions
             CheckArguments(MethodBase.GetCurrentMethod(), typeof(ModbusReadCommandParameters));
         }
 
-        /// <inheritdoc />
+        //analogni izlaz
+
         public override byte[] PackRequest()
         {
-            //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+            byte[] zahtev = new byte[12];
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId)), 0, zahtev, 0, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId)), 0, zahtev, 2, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.Length)), 0, zahtev, 4, 2);
+
+            zahtev[6] = CommandParameters.UnitId;
+            zahtev[7] = CommandParameters.FunctionCode;
+
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).StartAddress)), 0, zahtev, 8, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).Quantity)), 0, zahtev, 10, 2);
+
+
+            return zahtev;
         }
 
         /// <inheritdoc />
         public override Dictionary<Tuple<PointType, ushort>, ushort> ParseResponse(byte[] response)
         {
             //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+            var odgovor = new Dictionary<Tuple<PointType, ushort>, ushort>();
+
+
+            if (response[7] == CommandParameters.FunctionCode + 0x80)
+            {
+                HandeException(response[8]);
+            }
+            else
+            {
+
+                int brojac = 0;
+                ushort adresa = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
+                ushort vrednost = 0;
+
+                //response[8] bytecount
+                //quantity - ukupan broj paketa (1 paket = 2byte)
+
+                for (int i = 0; i < response[8]; i += 2)
+                {
+                    vrednost = BitConverter.ToUInt16(response, 9 + 1);
+                    vrednost = (ushort)IPAddress.NetworkToHostOrder((short)vrednost);
+
+                    //analogni izlaz
+                    odgovor.Add(new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, adresa), vrednost);
+
+                    brojac++;
+                    adresa++;
+
+
+                    if (brojac >= ((ModbusReadCommandParameters)CommandParameters).Quantity)
+                        break;
+                }
+
+
+            }
+
+            return odgovor;
         }
     }
 }

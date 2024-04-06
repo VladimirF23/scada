@@ -22,17 +22,70 @@ namespace Modbus.ModbusFunctions
         }
 
         /// <inheritdoc />
+        /// 
+        //digitalni ulazi
+
+
         public override byte[] PackRequest()
         {
             //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+
+            byte[] zahtev = new byte[12];
+
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId)), 0, zahtev, 0, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId)), 0, zahtev, 2, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)CommandParameters.Length)), 0, zahtev, 4, 2);
+            zahtev[6] = CommandParameters.UnitId;           //ne trebo hton jer je samo 1 byte
+            zahtev[7] = CommandParameters.FunctionCode;
+
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).StartAddress)), 0, zahtev, 8, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).Quantity)), 0, zahtev, 10, 2);
+
+
+
+            return zahtev;
         }
 
         /// <inheritdoc />
         public override Dictionary<Tuple<PointType, ushort>, ushort> ParseResponse(byte[] response)
         {
             //TO DO: IMPLEMENT
-            throw new NotImplementedException();
+            var odgovor = new Dictionary<Tuple<PointType, ushort>, ushort>();
+
+            if (response[7] == CommandParameters.FunctionCode + 0x80)
+            {
+                HandeException(response[8]);
+            }
+            else
+            {
+                int brojac = 0;
+                ushort adresa = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
+                ushort vrednost = 0;
+                byte maska = 1;
+
+                // posto je digitalno onda valjda je u bitima pa sad trazimo te bite tako da nam treba 2 fora
+
+                for (int i = 0; i < response[8]; i++)
+                {
+                    byte temp = response[9 + i]; // od 9 krece data deo poruke
+                    /// 1110011 & 00000001
+                    vrednost = (ushort)(temp & maska);
+                    temp >>= 1;
+                    //DIGITAL_INPUT obavezno, jer citamo digitalne ulaze
+                    odgovor.Add(new Tuple<PointType, ushort>(PointType.DIGITAL_INPUT, adresa), vrednost);
+
+
+                    brojac++;
+                    adresa++;
+
+                    if (brojac > ((ModbusReadCommandParameters)CommandParameters).Quantity)          //quantity  oznacava broj bitova i onda posto mi mozemo imati nzm 4 bytea ali taj 4 byte ne mora biti popunjen do kraja sa bitovima pa pazimo da ne izadjmeo iz opsega
+                    {
+                        break;
+                    }
+
+                }
+            }
+            return odgovor;
         }
     }
 }
