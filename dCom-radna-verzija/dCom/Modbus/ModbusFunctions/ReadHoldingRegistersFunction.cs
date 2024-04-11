@@ -35,8 +35,6 @@ namespace Modbus.ModbusFunctions
 
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).StartAddress)), 0, zahtev, 8, 2);
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)((ModbusReadCommandParameters)CommandParameters).Quantity)), 0, zahtev, 10, 2);
-
-
             return zahtev;
         }
 
@@ -47,38 +45,28 @@ namespace Modbus.ModbusFunctions
             var odgovor = new Dictionary<Tuple<PointType, ushort>, ushort>();
 
 
-            if (response[7] == CommandParameters.FunctionCode + 0x80)
-            {
-                HandeException(response[8]);
-            }
-            else
-            {
 
-                int brojac = 0;
                 ushort adresa = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
                 ushort vrednost = 0;
 
-                //response[8] bytecount
+                //response[8] - bytecount
                 //quantity - ukupan broj paketa (1 paket = 2byte)
 
                 for (int i = 0; i < response[8]; i += 2)
                 {
-                    vrednost = BitConverter.ToUInt16(response, 9 + 1);
+                    vrednost = BitConverter.ToUInt16(response, 9 + i);
                     vrednost = (ushort)IPAddress.NetworkToHostOrder((short)vrednost);
 
                     //analogni izlaz
                     odgovor.Add(new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, adresa), vrednost);
 
-                    brojac++;
                     adresa++;
 
 
-                    if (brojac >= ((ModbusReadCommandParameters)CommandParameters).Quantity)
-                        break;
                 }
 
 
-            }
+            
 
             return odgovor;
         }

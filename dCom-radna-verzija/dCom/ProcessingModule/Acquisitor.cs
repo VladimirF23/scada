@@ -1,5 +1,6 @@
 ﻿using Common;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace ProcessingModule
@@ -57,6 +58,30 @@ namespace ProcessingModule
 		private void Acquisition_DoWork()
 		{
             //TO DO: IMPLEMENT
+
+            //poslednja kolona(10) u rtu nam govori na kolko se sekundi citaju vrednosti registara
+
+            List<IConfigItem> configItems = this.configuration.GetConfigurationItems();
+            while(true)
+            {
+                acquisitionTrigger.WaitOne();
+                foreach(IConfigItem item in configItems)
+                {
+                    item.SecondsPassedSinceLastPoll++;
+
+                    if (item.SecondsPassedSinceLastPoll == item.AcquisitionInterval)
+                    { //ako se poklapa sa onim intervalom koji je postavljen u fajlu
+                      //iz itema uzimamo informacije koje citamo na nekoliko sekundi
+                        processingManager.ExecuteReadCommand(item, this.configuration.GetTransactionId(), configuration.UnitAddress, item.StartAddress, item.NumberOfRegisters);
+
+                        item.SecondsPassedSinceLastPoll = 0;    //restartujemo brojac za citanje
+                    }
+                }
+
+
+
+            }
+
         }
 
         #endregion Private Methods

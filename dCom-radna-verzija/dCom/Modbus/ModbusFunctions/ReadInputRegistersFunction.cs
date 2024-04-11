@@ -60,26 +60,23 @@ namespace Modbus.ModbusFunctions
             else
             {
 
-                int brojac = 0;
                 ushort adresa = ((ModbusReadCommandParameters)CommandParameters).StartAddress;
                 ushort vrednost = 0;
 
-                //response[8] bytecount
+                //response[8] - bytecount
 
                 for (int i = 0; i < response[8]; i += 2)
                 {
-                    vrednost = BitConverter.ToUInt16(response, 9 + 1);
+                    vrednost = BitConverter.ToUInt16(response, 9 + i);
                     vrednost = (ushort)IPAddress.NetworkToHostOrder((short)vrednost);
 
                     //analogni ulazi
                     odgovor.Add(new Tuple<PointType, ushort>(PointType.ANALOG_INPUT, adresa), vrednost);
 
-                    brojac++;
                     adresa++;
 
 
-                    if (brojac >= ((ModbusReadCommandParameters)CommandParameters).Quantity)
-                        break;
+
                 }
 
 

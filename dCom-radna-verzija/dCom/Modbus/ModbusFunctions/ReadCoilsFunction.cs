@@ -65,7 +65,7 @@ namespace Modbus.ModbusFunctions
 
                 // posto je digitalno onda valjda je u bitima pa sad trazimo te bite tako da nam treba 2 fora
 
-                for (int i = 0; i < response[8]; i++)
+                for (int i = 0; i < response[8]; i++)               //prvi for da citamo po bytovima respones    response[8] - bytecount kolko byteova vraca
                 {
                     byte temp = response[9 + i]; // od 9 krece data deo poruke
                     // 1110011 & 00000001
