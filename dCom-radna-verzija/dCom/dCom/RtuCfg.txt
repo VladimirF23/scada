@@ -2,7 +2,14 @@ STA 1
 TCP 58486
 
 
-DO_REG  1 2200  0  0      1     0  DO  @D 2
-IN_REG  1 2300  0  0   4095  2000  AI  @B 4
-IN_REG  5 2301  0  0   4095  2000  AI  @S 4
-HR_INT  4 4900  0  0   4095  1200  AO  @M 4
+DO_REG  1 2200  0  0      1     0  DO  @SignalUkljucenja		2
+IN_REG  1 2300  0  0   4095  2000  AI  @KapacitetBaterije		4
+IN_REG  1 2301  0  0   4095  2000  AI  @Senzor_Temp				4
+IN_REG  1 2302  0  0   4095  2000  AI  @Senzor_Prit				4
+IN_REG  1 2303  0  0   4095  2000  AI  @Ziroskop_X				4
+IN_REG  1 2304  0  0   4095  2000  AI  @Ziroskop_Y				4
+IN_REG  1 2305  0  0   4095  2000  AI  @Ziroskop_Z				4
+HR_INT  1 4900  0  0   4095  1200  AO  @Napajanje_Levog_Krila	4
+HR_INT  1 4901  0  0   4095  1200  AO  @Napajanje_Desnog_Krila	4
+HR_INT  1 4902  0  0   4095  1200  AO  @Napajanje_Repa			4
+HR_INT  1 4903  0  0   4095  1200  AO  @Napajanje_Pogona		4
