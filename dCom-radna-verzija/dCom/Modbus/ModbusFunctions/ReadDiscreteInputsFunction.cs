@@ -69,18 +69,23 @@ namespace Modbus.ModbusFunctions
                 {
                     byte temp = response[9 + i]; // od 9 krece data deo poruke
                     /// 1110011 & 00000001
-                    vrednost = (ushort)(temp & maska);
-                    temp >>= 1;
-                    //DIGITAL_INPUT obavezno, jer citamo digitalne ulaze
-                    odgovor.Add(new Tuple<PointType, ushort>(PointType.DIGITAL_INPUT, adresa), vrednost);
-
-
-                    brojac++;
-                    adresa++;
-
-                    if (brojac > ((ModbusReadCommandParameters)CommandParameters).Quantity)          //quantity  oznacava broj bitova i onda posto mi mozemo imati nzm 4 bytea ali taj 4 byte ne mora biti popunjen do kraja sa bitovima pa pazimo da ne izadjmeo iz opsega
+                    /// 
+                    for (int j = 0; j < 8; j++)
                     {
-                        break;
+
+                        vrednost = (ushort)(temp & maska);
+                        temp >>= 1;
+                        //DIGITAL_INPUT obavezno, jer citamo digitalne ulaze
+                        odgovor.Add(new Tuple<PointType, ushort>(PointType.DIGITAL_INPUT, adresa), vrednost);
+
+
+                        brojac++;
+                        adresa++;
+
+                        if (brojac >= ((ModbusReadCommandParameters)CommandParameters).Quantity)          //quantity  oznacava broj bitova i onda posto mi mozemo imati nzm 4 bytea ali taj 4 byte ne mora biti popunjen do kraja sa bitovima pa pazimo da ne izadjmeo iz opsega
+                        {
+                            break;
+                        }
                     }
 
                 }
